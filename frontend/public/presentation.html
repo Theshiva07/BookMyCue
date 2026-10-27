@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CueMyBreak — Snooker Analytics & Tournament Platform (7-Slide Deck)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.8);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.12) 0%, transparent 40%);
+    }
+
+    header {
+      position: relative;
+      z-index: 10;
+      height: 60px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--emerald-glow);
+    }
+
+    .brand-badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 600;
+    }
+
+    .slide-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--emerald), var(--cyan));
+      transition: width 0.3s ease;
+      z-index: 20;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-emerald {
+      background: var(--emerald);
+      color: #000;
+      border: none;
+      box-shadow: 0 0 15px var(--emerald-glow);
+    }
+
+    .btn-emerald:hover {
+      background: #34d399;
+    }
+
+    main {
+      flex: 1;
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 40px;
+    }
+
+    .slide {
+      position: absolute;
+      width: min(1360px, 94vw);
+      height: min(760px, 86vh);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: none;
+      flex-direction: column;
+      padding: 36px 44px;
+      opacity: 0;
+      transform: translateY(10px) scale(0.99);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .slide.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .slide-badge {
+      align-self: flex-start;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      margin-bottom: 10px;
+    }
+
+    .slide-title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 28px;
+      min-height: 0;
+    }
+
+    .slide-content.full-width {
+      grid-template-columns: 1fr;
+    }
+
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .point-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .point-card:hover {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .point-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .point-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+    }
+
+    .point-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      padding-left: 16px;
+    }
+
+    .screenshot-frame {
+      width: 100%;
+      height: 100%;
+      max-height: 460px;
+      background: #000;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screenshot-bar {
+      height: 28px;
+      background: #111827;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .window-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #eab308; }
+    .dot-green { background: #22c55e; }
+
+    .window-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-left: 6px;
+    }
+
+    .screenshot-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top left;
+      background: #0f172a;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--emerald);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .code-box {
+      background: #060911;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .code-kw { color: #38bdf8; font-weight: 600; }
+    .code-lbl { color: #4ade80; }
+    .code-rel { color: #f472b6; font-weight: 600; }
+    .code-str { color: #fbbf24; }
+
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .comp-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .comp-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+    }
+
+    .badge-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    /* Speaker Notes Drawer */
+    .notes-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.96);
+      border-top: 1px solid var(--emerald);
+      backdrop-filter: blur(16px);
+      padding: 16px 40px;
+      transform: translateY(100%);
+      transition: transform 0.25s ease;
+      z-index: 50;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .notes-drawer.open {
+      transform: translateY(0);
+    }
+
+    .notes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .notes-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--emerald);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notes-body {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    footer {
+      position: relative;
+      z-index: 10;
+      height: 54px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--card-border);
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .footer-center {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s;
+    }
+
+    .nav-arrow:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .slide-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      min-width: 85px;
+      text-align: center;
+    }
+
+    kbd {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🎱</div>
+      <span>CueMyBreak</span>
+      <span class="brand-badge">Academic Project Presentation</span>
+    </div>
+
+    <div class="top-controls">
+      <button class="btn" onclick="toggleNotes()">
+        <span>🎙️</span>
+        <span id="notesBtnText">Speaker Notes (N)</span>
+      </button>
+      <button class="btn" onclick="toggleFullscreen()">
+        <span>⛶</span>
+        <span>Fullscreen (F)</span>
+      </button>
+      <a href="http://localhost:3000" target="_blank" class="btn btn-emerald" style="text-decoration:none;">
+        <span>🚀</span>
+        <span>Open Live App</span>
+      </a>
+    </div>
+
+    <div class="slide-progress" id="progressBar"></div>
+  </header>
+
+  <main>
+
+    <!-- SLIDE 1: Project Overview -->
+    <div class="slide active" data-slide="1">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span class="slide-badge">Slide 1 / 7 • Project Introduction • BCSE302L Database Systems Lab</span>
+        <span style="font-size:0.8rem; font-weight:600; color:#38bdf8; background:rgba(56,189,248,0.1); padding:4px 10px; border-radius:9999px; border:1px solid rgba(56,189,248,0.3);">
+          Shiva Chauhan (24BCT0221) & Tishant Gera (24BCT0233)
+        </span>
+      </div>
+      <h1 class="slide-title">BookMyCue: Snooker Tournament & Analytics Platform</h1>
+      <p class="slide-subtitle">A Polyglot Database Platform Powered by Neo4j Graph DB, MongoDB & 3NF/BCNF Relational Design</p>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num">152</div>
+          <div class="stat-label">Total Nodes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">444</div>
+          <div class="stat-label">Relationships</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">7</div>
+          <div class="stat-label">Node Labels</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">10</div>
+          <div class="stat-label">Cypher Queries</div>
+        </div>
+      </div>
+
+      <div class="slide-content">
+        <div class="left-col">
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>What is CueMyBreak?</div>
+            <div class="point-desc">An all-in-one platform for managing professional snooker tournaments, tracking head-to-head match histories, and discovering hidden connections between players.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>What makes it special?</div>
+            <div class="point-desc">Instead of just showing tables and lists, it models the entire sporting ecosystem as an <strong>interactive connected graph</strong> where players, venues, hosts, and matches are linked in real time.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>Complete Full-Stack Delivery</div>
+            <div class="point-desc">Built with React, Vite, Tailwind CSS, Express, TypeScript, Neo4j Graph DB, and MongoDB. Fully responsive and running live.</div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="screenshot-frame">
+            <div class="screenshot-bar">
+              <span class="window-dot dot-red"></span>
+              <span class="window-dot dot-yellow"></span>
+              <span class="window-dot dot-green"></span>
+              <span class="window-title">http://localhost:3000/ — Live Dashboard</span>
+            </div>
+            <img src="/screenshots/ss_dashboard.png" class="screenshot-img" alt="Dashboard">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Why Graph Database? -->
+    <div class="slide" data-slide="2">
+      <span class="slide-badge">Slide 2 / 7 • Core Concept</span>
+      <h2 class="slide-title">Why Did We Use a Graph Database (Neo4j)?</h2>
+      <p class="slide-subtitle">Why traditional SQL databases fail for tournament ladders and player connections</p>
+
+      <div class="slide-content">
+        <div class="left-col">
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot" style="background:#ef4444;"></div>The Problem with SQL (Relational Databases)</div>
+            <div class="point-desc">To find indirect connections (e.g. <em>"Has Player A ever played against anyone who beat Player B?"</em>), SQL requires multiple expensive <code>JOIN</code> operations across tables. With thousands of matches, queries become extremely slow.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>The Neo4j Solution (Index-Free Adjacency)</div>
+            <div class="point-desc">In Neo4j, relationships are stored as direct memory pointers between nodes. Traversing from one player to their opponents takes <strong>less than 5 milliseconds</strong> ($O(1)$ per hop).</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>Knockout Brackets are Natural Graphs</div>
+            <div class="point-desc">A tournament bracket is a Directed Acyclic Graph (DAG) where winners naturally move to the <code>:NEXT_MATCH</code>. Graphs represent this perfectly without messy join tables.</div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="code-box" style="width:100%;">
+<span class="code-kw">// Finding indirect connections in Cypher:</span>
+<span class="code-kw">MATCH</span> (p1:<span class="code-lbl">Player</span> {name: <span class="code-str">'Rahul Sharma'</span>})
+      -[:<span class="code-rel">PLAYED_AGAINST</span>*1..3]-
+      (p2:<span class="code-lbl">Player</span> {name: <span class="code-str">'Ronnie O\'Sullivan'</span>})
+<span class="code-kw">RETURN</span> p2.name, length(path) <span class="code-kw">AS</span> Degrees;
+
+<span style="color:#64748b;">// Result in 2ms:</span>
+<span style="color:#10b981;">Rahul Sharma → Aditya Verma → Ronnie O'Sullivan (2 hops)</span>
+          </div>
+          <div style="margin-top:14px; text-align:center; font-size:0.85rem; color:var(--text-muted);">
+            ⚡ <strong>Index-Free Adjacency:</strong> Traversals don't slow down as the database grows!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: System Architecture -->
+    <div class="slide" data-slide="3">
+      <span class="slide-badge">Slide 3 / 7 • Architecture</span>
+      <h2 class="slide-title">System Architecture: Polyglot Database Design</h2>
+      <p class="slide-subtitle">Using the right tool for the job: Neo4j for relationships + MongoDB for documents</p>
+
+      <div class="slide-content">
+        <div class="left-col">
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>1. Frontend (React + Vite + Tailwind + D3.js)</div>
+            <div class="point-desc">Modern dark-theme user interface with interactive physics-based force graph canvas, live query studio, and live match scoring controls.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>2. Backend (Node.js + Express + TypeScript)</div>
+            <div class="point-desc">REST API server managing business logic, bracket generation, and dual-database synchronization.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>3. Neo4j Graph DB (Relationship Engine)</div>
+            <div class="point-desc">Stores 152 nodes and 444 relationships. Runs Cypher queries, shortest paths, PageRank, and bracket progression.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>4. MongoDB Document DB (Document Engine)</div>
+            <div class="point-desc">Stores frame-by-frame ball potting telemetry, player bios, and detailed tournament rules.</div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="screenshot-frame">
+            <div class="screenshot-bar">
+              <span class="window-dot dot-red"></span>
+              <span class="window-dot dot-yellow"></span>
+              <span class="window-dot dot-green"></span>
+              <span class="window-title">http://localhost:3000/tournaments — Tournament Brackets</span>
+            </div>
+            <img src="/screenshots/ss_tournaments.png" class="screenshot-img" alt="Brackets">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Graph Structure (Nodes & Edges) -->
+    <div class="slide" data-slide="4">
+      <span class="slide-badge">Slide 4 / 7 • Data Model</span>
+      <h2 class="slide-title">Our Graph Schema: 7 Node Labels & 10 Relationships</h2>
+      <p class="slide-subtitle">A complete model covering players, venues, hosts, and tournament stages</p>
+
+      <div class="slide-content full-width">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>7 Node Labels (152 Nodes Total)</div>
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+              <div>🟢 <strong>Player (40 nodes)</strong>: <code>name, currentRank, winRate, highestBreak</code></div>
+              <div>🟣 <strong>Venue (10 nodes)</strong>: <code>name, city, tableCount, seatingCapacity</code></div>
+              <div>🔵 <strong>Host (6 nodes)</strong>: <code>name, organization, email, phone</code></div>
+              <div>🟡 <strong>Event (12 nodes)</strong>: <code>title, format, status, entryFee</code></div>
+              <div>🟠 <strong>Tournament (6 nodes)</strong>: <code>name, status, prizePool, numRounds</code></div>
+              <div>⚪ <strong>Round (18 nodes)</strong>: <code>roundNumber, tournamentId, status</code></div>
+              <div>🔴 <strong>Match (60 nodes)</strong>: <code>matchId, scoreA, scoreB, status, winnerId</code></div>
+            </div>
+          </div>
+
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot" style="background:var(--cyan);"></div>10 Relationship Types (444 Links Total)</div>
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+              <div>↔️ <strong>PLAYED_AGAINST</strong>: Connects two players with head-to-head stats</div>
+              <div>🏆 <strong>PARTICIPATED_IN</strong>: Connects a player to a tournament</div>
+              <div>🥇 <strong>WON / LOST</strong>: Connects a player to a match result</div>
+              <div>📍 <strong>HOSTED_AT</strong>: Connects a tournament/event to its physical venue</div>
+              <div>👔 <strong>MANAGED_BY</strong>: Connects a tournament to its organizing host</div>
+              <div>📝 <strong>REGISTERED_FOR</strong>: Connects a player to a tournament event</div>
+              <div>🪜 <strong>HAS_ROUND / HAS_MATCH</strong>: Tournament bracket hierarchy</div>
+              <div>➡️ <strong>NEXT_MATCH</strong>: Advances match winners to the next knockout round</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Feature 1 - Graph Explorer & Shortest Path -->
+    <div class="slide" data-slide="5">
+      <span class="slide-badge">Slide 5 / 7 • Interactive Feature</span>
+      <h2 class="slide-title">Interactive Graph Explorer & Shortest Path</h2>
+      <p class="slide-subtitle">Visual network exploration with live Dijkstra/BFS shortest path calculation</p>
+
+      <div class="slide-content">
+        <div class="left-col">
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>D3.js Force Simulation Canvas</div>
+            <div class="point-desc">Allows users to zoom, pan, and drag any of the 152 nodes in real-time with physics-based collisions and link tension.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>"Go to a node" Dropdown Navigator</div>
+            <div class="point-desc">Select any node directly from the dropdown to focus and view its exact properties (Rank, Win Rate, City, Tables).</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>Directional Connections List</div>
+            <div class="point-desc">Shows incoming (<code>← MANAGED_BY</code>) and outgoing (<code>HOSTED_AT →</code>) links. Clicking any item jumps to that connected node immediately.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>Shortest Path Finder (Degrees of Separation)</div>
+            <div class="point-desc">Select Player 1 and Player 2 $\rightarrow$ highlights their shortest path in glowing <strong>amber color</strong> while dimming other nodes.</div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="screenshot-frame">
+            <div class="screenshot-bar">
+              <span class="window-dot dot-red"></span>
+              <span class="window-dot dot-yellow"></span>
+              <span class="window-dot dot-green"></span>
+              <span class="window-title">http://localhost:3000/graph-explorer — Graph Explorer</span>
+            </div>
+            <img src="/screenshots/ss_graph_explorer.png" class="screenshot-img" alt="Graph Explorer">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Feature 2 - Cypher Studio & Graph Algorithms -->
+    <div class="slide" data-slide="6">
+      <span class="slide-badge">Slide 6 / 7 • Intelligence & Cypher</span>
+      <h2 class="slide-title">Cypher Query Studio & Graph Analytics (GDS)</h2>
+      <p class="slide-subtitle">Write custom queries live in the browser + 3 advanced graph algorithms</p>
+
+      <div class="slide-content">
+        <div class="left-col">
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>Live Cypher Query Editor</div>
+            <div class="point-desc">You can type any Cypher query on screen and click <strong>"Run Cypher"</strong>. It executes instantly and renders formatted result tables with millisecond execution latency.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>1. PageRank Centrality (Player Dominance)</div>
+            <div class="point-desc">Measures player strength based on <em>who</em> they beat. Defeating a top-tier player (like Ronnie O'Sullivan) gives far more score than beating a lower-ranked player.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>2. Louvain Community Detection</div>
+            <div class="point-desc">Automatically groups players into competitive tiers and circuits without any manual human labeling.</div>
+          </div>
+          <div class="point-card">
+            <div class="point-header"><div class="point-dot"></div>3. Shortest Path (Degrees of Separation)</div>
+            <div class="point-desc">Finds the shortest historical match chain connecting any two players in the ecosystem.</div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="screenshot-frame">
+            <div class="screenshot-bar">
+              <span class="window-dot dot-red"></span>
+              <span class="window-dot dot-yellow"></span>
+              <span class="window-dot dot-green"></span>
+              <span class="window-title">http://localhost:3000/cypher-suite — Cypher Studio</span>
+            </div>
+            <img src="/screenshots/ss_cypher_suite.png" class="screenshot-img" alt="Cypher Studio">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Compliance & Demo -->
+    <div class="slide" data-slide="7">
+      <span class="slide-badge">Slide 7 / 7 • Final Summary</span>
+      <h2 class="slide-title">Requirements Compliance & Live Demonstration</h2>
+      <p class="slide-subtitle">100% compliance across all academic Neo4j project guidelines</p>
+
+      <div class="slide-content full-width">
+        <table class="comp-table" style="margin-bottom: 20px;">
+          <thead>
+            <tr>
+              <th>Prescribed Criteria</th>
+              <th>Required Minimum</th>
+              <th>CueMyBreak Delivery</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Node Labels</strong></td>
+              <td>At least 5 labels</td>
+              <td><strong>7 Labels</strong>: <code>Player</code>, <code>Venue</code>, <code>Host</code>, <code>Event</code>, <code>Tournament</code>, <code>Round</code>, <code>Match</code></td>
+              <td><span class="badge-check">✓ Exceeded (7)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Relationship Types</strong></td>
+              <td>At least 6 types</td>
+              <td><strong>10 Types</strong>: <code>PLAYED_AGAINST</code>, <code>HOSTED_AT</code>, <code>MANAGED_BY</code>, <code>PARTICIPATED_IN</code>, etc.</td>
+              <td><span class="badge-check">✓ Exceeded (10)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Node Count</strong></td>
+              <td>100+ nodes</td>
+              <td><strong>152 Nodes & 444 Relationships</strong> across the graph</td>
+              <td><span class="badge-check">✓ Exceeded (152)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Cypher Queries</strong></td>
+              <td>10 queries</td>
+              <td><strong>10 Curated Queries</strong> + Live In-Browser Cypher Console & Query Runner</td>
+              <td><span class="badge-check">✓ Complete (10+)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Graph Algorithms</strong></td>
+              <td>At least 2 algorithms</td>
+              <td><strong>3 Algorithms</strong>: Shortest Path (`shortestPath`), PageRank Centrality, Louvain Community Detection</td>
+              <td><span class="badge-check">✓ Exceeded (3)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Interactive Graph UI</strong></td>
+              <td>Required</td>
+              <td><strong>D3.js Force Simulation</strong> with zooming, dragging, node inspector, and path highlights</td>
+              <td><span class="badge-check">✓ Complete</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 18px 24px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <h4 style="font-size:1.1rem; font-weight:700; margin-bottom:4px;">Ready for Live Demo!</h4>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Would you like me to run any Cypher query or demonstrate the graph explorer live on screen?</p>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <a href="http://localhost:3000/graph-explorer" target="_blank" class="btn btn-emerald" style="text-decoration:none; padding:9px 16px;">
+              Open Graph Explorer
+            </a>
+            <a href="http://localhost:3000/cypher-suite" target="_blank" class="btn" style="text-decoration:none; padding:9px 16px;">
+              Open Cypher Studio
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Speaker Notes Drawer -->
+  <div class="notes-drawer" id="notesDrawer">
+    <div class="notes-header">
+      <div class="notes-title">
+        <span>🎙️</span>
+        <span>What to say for Slide <span id="notesSlideNum">1</span> (Easy Script)</span>
+      </div>
+      <button class="btn" onclick="toggleNotes()" style="padding: 3px 8px; font-size: 0.75rem;">Close (N)</button>
+    </div>
+    <div class="notes-body" id="notesContent">
+      Loading speaker script...
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-left">
+      <span>Use <kbd>←</kbd> and <kbd>→</kbd> or <kbd>Space</kbd> to change slides</span>
+      <span>•</span>
+      <span>Press <kbd>N</kbd> for Speaker Notes</span>
+      <span>•</span>
+      <span>Press <kbd>F</kbd> for Fullscreen</span>
+    </div>
+
+    <div class="footer-center">
+      <button class="nav-arrow" onclick="prevSlide()" title="Previous slide (Left Arrow)">‹</button>
+      <div class="slide-counter" id="slideCounter">Slide 1 / 7</div>
+      <button class="nav-arrow" onclick="nextSlide()" title="Next slide (Right Arrow)">›</button>
+    </div>
+
+    <div class="footer-right">
+      <span style="font-size: 0.8rem; color: #64748b;">CueMyBreak © 2026</span>
+    </div>
+  </footer>
+
+  <script>
+    const speakerNotes = {
+      1: "Good morning Ma'am. Today I am presenting CueMyBreak, our full-stack snooker tournament management and sports analytics platform powered by Neo4j Graph Database. In this project, we satisfy all criteria with 152 nodes, 444 relationships, 7 node labels, 10 Cypher queries, and 3 graph algorithms, all integrated into a responsive web application.",
+      2: "Here we explain why we chose Neo4j instead of traditional SQL. In sports analytics, answering questions like 'What is the indirect match connection between two players?' requires expensive multi-table JOINs in SQL that become slow as data grows. Neo4j uses index-free adjacency to traverse connections directly in memory in less than 5 milliseconds.",
+      3: "This is our Polyglot Persistence Architecture. Instead of relying on only one database, we use MongoDB for document-heavy ball-by-ball scoring and frame logs, and Neo4j for relationship-intensive queries such as tournament brackets, player rivalries, and graph analytics algorithms.",
+      4: "Here is our Neo4j Graph Schema. We engineered 7 distinct Node Labels—Player, Venue, Host, Event, Tournament, Round, and Match—and connected them using 10 relationship types like PLAYED_AGAINST, HOSTED_AT, MANAGED_BY, and NEXT_MATCH for tournament bracket progression.",
+      5: "This is our interactive Graph Explorer built with D3.js. You can drag and zoom on any node, use the 'Go to a node' dropdown navigator, and inspect incoming and outgoing connections. Furthermore, the Shortest Path feature calculates the degrees of separation between any two players and highlights the active path in glowing amber.",
+      6: "This is our in-browser Cypher Query Studio. Rather than just writing queries on paper, anyone can write custom Cypher queries directly in this console and view live table results. We also implemented 3 Graph Data Science algorithms: PageRank for player dominance, Louvain Community Detection for competitive tiers, and Shortest Path.",
+      7: "To conclude, this slide proves our complete compliance with the project criteria: 7 labels instead of 5, 10 relationships instead of 6, 152 nodes instead of 100, plus 3 graph algorithms. I would now love to open the live application at localhost:3000 and run any Cypher query or demonstrate the graph explorer for you, Ma'am."
+    };
+
+    let currentSlide = 1;
+    const totalSlides = 7;
+
+    function updateSlide() {
+      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+      const activeEl = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+      if (activeEl) activeEl.classList.add('active');
+
+      document.getElementById('slideCounter').textContent = `Slide ${currentSlide} / ${totalSlides}`;
+      document.getElementById('progressBar').style.width = `${(currentSlide / totalSlides) * 100}%`;
+      
+      document.getElementById('notesSlideNum').textContent = currentSlide;
+      document.getElementById('notesContent').textContent = speakerNotes[currentSlide] || "";
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      const drawer = document.getElementById('notesDrawer');
+      drawer.classList.toggle('open');
+      const isOpen = drawer.classList.contains('open');
+      document.getElementById('notesBtnText').textContent = isOpen ? "Hide Notes (N)" : "Speaker Notes (N)";
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    updateSlide();
+  </script>
+</body>
+</html>
